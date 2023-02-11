@@ -1,0 +1,58 @@
+// Step 1:
+Create the manifest file const manifest = { "manifest_version": 2,
+"name": "Medical Literature Checker and Corrector",
+"description": "This extension checks and corrects medical literature and dictations.",
+"version": "1.0",
+
+// Step 2: Define Permissions
+"permissions": [
+"activeTab",
+"storage",
+"tabs"
+],
+
+// Step 3: Define the background script
+"background": {
+"scripts": ["background.js"],
+"persistent": false
+},
+
+// Step 4: Define the content scripts
+"content_scripts": [
+{
+"js": ["content.js"],
+"matches": [
+"*://*.doctor.com/*",
+"*://*.clinician.com/*"
+]
+}
+],
+
+// Step 5: Create the Page Actions
+"page_action": {
+"default_icon": {
+"48": "icons/checkmark.png"
+},
+"default_title": "Correct Medical Literature and Dictations"
+}
+};
+
+// Step 6: Create the background and content scripts
+// background.js
+browser.runtime.onMessage.addListener(message => {
+if (message.type === "check-medical-document") {
+const correctedDocument = checkAndCorrectMedicalDictation(message.document);
+const updatedReferences = rewriteReferencesToMatchJournal(message.document);
+sendResponse({ correctedDocument, updatedReferences });
+}
+});
+
+// content.js
+document.addEventListener("click", event => {
+if (event.target.classList.contains("medical-dictation")) {
+browser.runtime.sendMessage({
+type: "check-medical-document",
+document: event.target.textContent
+});
+}
+});
